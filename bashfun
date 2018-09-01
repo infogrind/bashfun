@@ -1,0 +1,69 @@
+#!/bin/bash
+
+if command -v gstat > /dev/null; then
+	STAT=gstat
+else
+	STAT=stat
+fi
+
+foobar() {
+	echo foobar!
+	if [ $# -eq 0 ]; then
+		echo "No arguments"
+	else
+		echo "Arguments: "
+		for a in $*; do
+			echo "- $a"
+		done
+	fi
+
+	return 0
+}
+
+fileExists() {
+	FILENAME=$1
+	if [ -f "$FILENAME" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+fileReadable() {
+	FILENAME="$1"
+	[ -r "$FILENAME" ]
+}
+
+fileUser() {
+	FILENAME="$1"
+	assertFileExists "$FILENAME"
+	$STAT -c %U "$FILENAME"
+}
+
+assertFileExists() {
+	FILENAME="$1"
+	if [ ! -f "$FILENAME" ]; then
+		echo "Assertion error: file $FILENAME does not exist"
+		exit 1
+	fi
+}
+
+FILENAMES="holidu bashfun gurt"
+for f in $FILENAMES; do
+	if fileExists "$f"; then
+		echo "$f exists"
+	else
+		echo "$f doesn't exist"
+	fi
+	if fileReadable "$f"; then
+		echo "$f is readable"
+	else
+		echo "$f is NOT readable"
+	fi
+	if fileExists "$f"; then
+		fileUser "$f"
+		echo "User of $f:" $(fileUser "$f")
+	fi
+done
+
+echo User of gchonto: $(fileUser gchonto)
