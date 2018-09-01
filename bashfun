@@ -11,6 +11,7 @@ foobar() {
 	if [ $# -eq 0 ]; then
 		echo "No arguments"
 	else
+		echo "\$1 = $1"
 		echo "Arguments: "
 		for a in $*; do
 			echo "- $a"
@@ -92,37 +93,72 @@ assertExists() {
 	fi
 }
 
-FILENAMES="holidu bashfun gurt"
-for f in $FILENAMES; do
-	if fileExists "$f"; then
-		echo "$f exists"
-	else
-		echo "$f doesn't exist"
-	fi
-	if fileReadable "$f"; then
-		echo "$f is readable"
-	else
-		echo "$f is NOT readable"
-	fi
-	if fileExists "$f"; then
-		echo "- Owner (user):" $(fileUser "$f")
-		echo "- Permissions:" $(filePerms "$f")
-		if fileReadableByOwner "$f"; then
-			echo "- Readable by owner"
+test() {
+	local FILENAMES
+	FILENAMES="holidu bashfun gurt"
+	for f in $FILENAMES; do
+		if fileExists "$f"; then
+			echo "$f exists"
 		else
-			echo "- Not readable by owner"
+			echo "$f doesn't exist"
 		fi
-		if fileReadableByGroup "$f"; then
-			echo "- Readable by group"
+		if fileReadable "$f"; then
+			echo "$f is readable"
 		else
-			echo "- Not readable by group"
+			echo "$f is NOT readable"
 		fi
-		if fileReadableByOthers "$f"; then
-			echo "- Readable by others"
-		else
-			echo "- Not readable by others"
+		if fileExists "$f"; then
+			echo "- Owner (user):" $(fileUser "$f")
+			echo "- Permissions:" $(filePerms "$f")
+			if fileReadableByOwner "$f"; then
+				echo "- Readable by owner"
+			else
+				echo "- Not readable by owner"
+			fi
+			if fileReadableByGroup "$f"; then
+				echo "- Readable by group"
+			else
+				echo "- Not readable by group"
+			fi
+			if fileReadableByOthers "$f"; then
+				echo "- Readable by others"
+			else
+				echo "- Not readable by others"
+			fi
 		fi
-	fi
-	echo ""
-done
+		echo ""
+	done
+}
 
+usage() {
+	cat <<EOT
+Usage: $0 <command> <options>
+
+Commands:
+	test - Runs a demo of the command.
+	foobar - Shows how to pass arguments to a subcommand.
+		 Try "$0 foobar a s d f"
+EOT
+}
+
+if [ $# -eq 0 ]; then
+	echo "Syntax error"
+	usage
+	exit 1;
+else
+	CMD="$1"
+	shift
+	case "$CMD" in
+		test)
+			test
+			;;
+		foobar)
+			foobar $*
+			;;
+		*)
+			echo "Unknown command: $CMD"
+			usage
+			exit 1
+			;;
+	esac
+fi
