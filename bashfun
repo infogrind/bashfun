@@ -40,10 +40,27 @@ fileUser() {
 	$STAT -c %U "$FILENAME"
 }
 
+# Returns the permission string of a file, dir, ... (e.g. "-rwxr-x---")
+filePerms() {
+	FILENAME="$1"
+	assertExists "$FILENAME"
+	echo $($STAT -c %A "$FILENAME")
+}
+
+# Verifies that a file of the given name exists
 assertFileExists() {
 	FILENAME="$1"
 	if [ ! -f "$FILENAME" ]; then
 		echo "Assertion error: file $FILENAME does not exist"
+		exit 1
+	fi
+}
+
+# Verifies that a file or directory of the given name exists
+assertExists() {
+	FILENAME="$1"
+	if [ ! -e "$FILENAME" ]; then
+		echo "Assertion error: $FILENAME does not exist"
 		exit 1
 	fi
 }
@@ -62,8 +79,8 @@ for f in $FILENAMES; do
 	fi
 	if fileExists "$f"; then
 		fileUser "$f"
-		echo "User of $f:" $(fileUser "$f")
+		echo "- Owner (user):" $(fileUser "$f")
+		echo "- Permissions:" $(filePerms "$f")
 	fi
 done
 
-echo User of gchonto: $(fileUser gchonto)
