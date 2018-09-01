@@ -141,10 +141,14 @@ Commands:
 EOT
 }
 
-if [ $# -eq 0 ]; then
-	echo "Syntax error"
+syntaxError() {
+	echo "Syntax error."
 	usage
-	exit 1;
+	exit 1
+}
+
+if [ $# -eq 0 ]; then
+	syntaxError
 else
 	CMD="$1"
 	shift
@@ -154,6 +158,10 @@ else
 			;;
 		foobar)
 			foobar $*
+			;;
+		ownerReadable)
+			[ $# -eq 1 ] || syntaxError
+			fileReadableByOwner "$1"
 			;;
 		*)
 			echo "Unknown command: $CMD"
