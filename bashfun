@@ -47,6 +47,33 @@ filePerms() {
 	echo $($STAT -c %A "$FILENAME")
 }
 
+# Returns 0 (true) if the given file/dir is readable by its owner.
+fileReadableByOwner() {
+	FILENAME="$1"
+	assertFileExists "$FILENAME"
+	PERMS=$($STAT -c %A "$FILENAME")
+	UREADFLAG=$(echo $PERMS | sed 's/.\(.\).*/\1/')
+	[ "$UREADFLAG" = "r" ]
+}
+
+# Returns 0 (true) if the given file/dir is readable by its group.
+fileReadableByGroup() {
+	FILENAME="$1"
+	assertFileExists "$FILENAME"
+	PERMS=$($STAT -c %A "$FILENAME")
+	UREADFLAG=$(echo $PERMS | sed 's/....\(.\).*/\1/')
+	[ "$UREADFLAG" = "r" ]
+}
+
+# Returns 0 (true) if the given file/dir is readable by other users
+fileReadableByOthers() {
+	FILENAME="$1"
+	assertFileExists "$FILENAME"
+	PERMS=$($STAT -c %A "$FILENAME")
+	UREADFLAG=$(echo $PERMS | sed 's/.......\(.\).*/\1/')
+	[ "$UREADFLAG" = "r" ]
+}
+
 # Verifies that a file of the given name exists
 assertFileExists() {
 	FILENAME="$1"
@@ -78,9 +105,24 @@ for f in $FILENAMES; do
 		echo "$f is NOT readable"
 	fi
 	if fileExists "$f"; then
-		fileUser "$f"
 		echo "- Owner (user):" $(fileUser "$f")
 		echo "- Permissions:" $(filePerms "$f")
+		if fileReadableByOwner "$f"; then
+			echo "- Readable by owner"
+		else
+			echo "- Not readable by owner"
+		fi
+		if fileReadableByGroup "$f"; then
+			echo "- Readable by group"
+		else
+			echo "- Not readable by group"
+		fi
+		if fileReadableByOthers "$f"; then
+			echo "- Readable by others"
+		else
+			echo "- Not readable by others"
+		fi
 	fi
+	echo ""
 done
 
