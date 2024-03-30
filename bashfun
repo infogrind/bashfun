@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# See https://gist.github.com/mohanpedala/1e2ff5661761d3abd0385e8223e16425
+# or https://wizardzines.com/comics/bash-errors/
+# for what these set commands do.
+set -eu
+set -o pipefail
+
 if command -v gstat > /dev/null; then
 	STAT=gstat
 else
@@ -13,7 +19,7 @@ foobar() {
 	else
 		echo "\$1 = $1"
 		echo "Arguments: "
-		for a in $*; do
+		for a in "$@"; do
 			echo "- $a"
 		done
 	fi
@@ -45,7 +51,7 @@ fileUser() {
 filePerms() {
 	FILENAME="$1"
 	assertExists "$FILENAME"
-	echo $($STAT -c %A "$FILENAME")
+	"$STAT" -c %A "$FILENAME"
 }
 
 # Returns 0 (true) if the given file/dir is readable by its owner.
@@ -53,7 +59,7 @@ fileReadableByOwner() {
 	FILENAME="$1"
 	assertFileExists "$FILENAME"
 	PERMS=$($STAT -c %A "$FILENAME")
-	UREADFLAG=$(echo $PERMS | sed 's/.\(.\).*/\1/')
+	UREADFLAG=$(echo "$PERMS" | sed 's/.\(.\).*/\1/')
 	[ "$UREADFLAG" = "r" ]
 }
 
@@ -62,7 +68,7 @@ fileReadableByGroup() {
 	FILENAME="$1"
 	assertFileExists "$FILENAME"
 	PERMS=$($STAT -c %A "$FILENAME")
-	UREADFLAG=$(echo $PERMS | sed 's/....\(.\).*/\1/')
+	UREADFLAG=$(echo "$PERMS" | sed 's/....\(.\).*/\1/')
 	[ "$UREADFLAG" = "r" ]
 }
 
@@ -108,8 +114,8 @@ test() {
 			echo "$f is NOT readable"
 		fi
 		if fileExists "$f"; then
-			echo "- Owner (user):" $(fileUser "$f")
-			echo "- Permissions:" $(filePerms "$f")
+			echo "- Owner (user):" "$(fileUser "$f")"
+			echo "- Permissions:" "$(filePerms "$f")"
 			if fileReadableByOwner "$f"; then
 				echo "- Readable by owner"
 			else
@@ -157,7 +163,7 @@ else
 			test
 			;;
 		foobar)
-			foobar $*
+			foobar "$@"
 			;;
 		ownerReadable)
 			[ $# -eq 1 ] || syntaxError
